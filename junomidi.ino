@@ -20,7 +20,7 @@ ArducamSSD1306 display(16);
 
 int currentPage = 0;
 
-int oldVals[16] = {0};
+int oldVals[POTS_NUM] = {0};
 int currentFader = -1;
 int faderVal = -1; // Will never be -1 once currentFader is greater than -1
 int tolerance = 5;
@@ -80,6 +80,7 @@ Param DCO_WAVE_SAW = {0x04, 0x05, "DCO Saw"};
 Param DCO_WAVE_SUB = {0x05, 0x05, "DCO Sub"};
 Param DCO_RANGE = {0x06, 0x03, "DCO Range"};
 Param HPF_CUTOFF = {0x09, 0x03, "HPF"};
+Param BEND_RANGE = {0x23, 0x0B, "Bend Range"};
 
 Param ENV_L1 = {0x1B, 0x7F, "ENV L1"};
 Param ENV_L2 = {0x1D, 0x7F, "ENV L2"};
@@ -124,7 +125,6 @@ void setup() {
 
   
   // Display
-  //Serial1.begin(115200);
   display.begin(); // Switch OLED
   // Clear the buffer
     //IdleLCD();
@@ -261,6 +261,7 @@ void SetDefaultParams() {
   SendSysExJuno(DCO_WAVE_SUB.id, 0); //maybe #5?
   SendSysExJuno(DCO_RANGE.id, 2); // 16'?
   SendSysExJuno(HPF_CUTOFF.id, 0);
+  SendSysExJuno(BEND_RANGE.id, 2);
 
   SendSysExJuno(ENV_L1.id, 127);
   SendSysExJuno(ENV_L2.id, 64);
