@@ -132,10 +132,6 @@ void setup() {
 }
 
 
-  boolean buttonPressed = false;
-  int prevVal = -1;
-  boolean buttonPressed2 = false;
-  int prevVal2 = -1;
   
 void loop() {
   
@@ -155,37 +151,7 @@ void loop() {
   DrawOLED();
 
 
-  // Debug: fader as button press  
-  int val = analogRead(faderValue[15]);
-  int cst = 1014;
-
-  if (prevVal <= cst && val > cst) {
-    buttonPressed = true;
-  } else {
-    buttonPressed = false;
-  }
-
-  prevVal = val;
-
-
-    // Debug: fader as button press  
-  int val2 = analogRead(faderValue[14]);
-
-  if (prevVal2 <= cst && val2 > cst) {
-    buttonPressed2 = true;
-  } else {
-    buttonPressed2 = false;
-  }
-
-  prevVal2 = val2;
-
-  if (buttonPressed) {
-    LoadParams(0);
-  }
-
-  if (buttonPressed2) {
-    SaveParams(0);
-  }
+  
   
   delay(dbtime);
 }
