@@ -12,6 +12,12 @@ JunoMidi is configured for a 128x64 OLED screen. It will display the current par
 #### Saving and Loading Patches
 This supports saving and loading patches to the Arduino itself using its EEPROM. It could potentially be configured with a (micro) SD card module in order to decrease wear on the EEPROM, but that would be relatively unnecessary due to the small size of the length 36 integer aray it stores for each patch. An SD card module could be a cool way to share and load patches made externally though. (EEPROM has a limit of 100,000 write cycles per single location)
 
+
+## Instalation
+Download the Arduino IDE
+In the Library Manager, download "MIDI Library" https://github.com/FortySevenEffects/arduino_midi_library and "Adafruit GFX Library" https://github.com/adafruit/Adafruit-GFX-Library 
+Make sure to set the board in settings to Arduino Mega
+
 ## Background
 The Alpha Juno 2 suffers from poor design initiated by the design of the Yamaha DX7, where there were no analog controls and instead programming of the synth had to be done through a tiny screen. This project resolves this issue by restoring controls similar to Roland's previous synthesizers.
 

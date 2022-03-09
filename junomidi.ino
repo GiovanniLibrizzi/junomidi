@@ -4,10 +4,11 @@
 #include <Adafruit_GFX.h>
 #include "ArducamSSD1306.h"
 #include "Wire.h"
+#include "params.h"
 MIDI_CREATE_DEFAULT_INSTANCE();
 
 #define POTS_NUM 16
-#define PAGES 3
+#define PAGES 2
 #define FADER_RANGE 1023
 #define PARAM_AMT 36
 const byte MIDI_CHANNEL = 1;
@@ -27,7 +28,7 @@ int tolerance = 5;
 
 // Counters
 unsigned long idleRefresh, lastRefresh, defaultRefresh, eepromRefresh = 0;
-const unsigned long REFRESH_INTERVAL = 350, DEFAULT_INTERVAL = 5000, EEPROM_INTERVAL = 20, IDLE_INTERVAL = 900; 
+const unsigned long REFRESH_INTERVAL = 1000, DEFAULT_INTERVAL = 5000, EEPROM_INTERVAL = 20, IDLE_INTERVAL = 900; 
 
 String EepromTxt;
 
@@ -45,54 +46,14 @@ enum Scr {
 
 Scr screenState = idle;
 
-typedef struct param {
-  int id;
-  int maxRange;
-  String name;
-} Param;
-
-
-// Roland Alpha Juno 2 parameters (their IDs and max range)
-Param LFO_RATE = {0x18, 0x7F, "LFO Rate"};
-Param LFO_DELAY_TIME = {0x19, 0x7F, "LFO Delay"};
-Param DCO_LFO = {0x0B, 0x7F, "DCO LFO"};
-Param DCO_PWM_DEPTH = {0x0E, 0x7F, "DCO PWM"};
-Param DCO_SUB_LVL = {0x07, 3, "Sub Level"};
-Param VCF_FREQ = {0x10, 0x7F, "VCF Freq"};
-Param VCF_RES = {0x11, 0x7F, "VCF Res"};
-Param VCF_ENV = {0x13, 0x7F, "VCF Env"};
-Param VCF_LFO = {0x12, 0x7F, "VCF LFO"};
-Param VCF_KYBD = {0x14, 0x7F, "VCF KYBD"};
-Param VCA_LVL = {0x16, 0x7F, "VCA Level"};
-Param ENV_T1 = {0x1A, 0x7F, "ENV T1"}; // ENV A
-Param ENV_T2 = {0x1C, 0x7F, "ENV T2"}; // ENV D
-Param ENV_T3 = {0x1E, 0x7F, "ENV T3"}; // ENV S
-Param ENV_T4 = {0x20, 0x7f, "ENV T4"}; // ENV R
-Param CHORUS = {0x0A, 0x01, "Chorus"}; // On off chorus
-Param CHORUS_RATE = {0x22, 0x7F, "Crs Rate"};
-
-Param DCO_ENV_MODE = {0x00, 0x03, "DCO ENV"};
-Param VCF_ENV_MODE = {0x01, 0x03, "VCF ENV"};
-Param VCA_ENV_MODE = {0x02, 0x03, "VCA ENV"};
-
-Param DCO_WAVE_PULSE = {0x03, 0x03, "DCO Pulse"};
-Param DCO_WAVE_SAW = {0x04, 0x05, "DCO Saw"};
-Param DCO_WAVE_SUB = {0x05, 0x05, "DCO Sub"};
-Param DCO_RANGE = {0x06, 0x03, "DCO Range"};
-Param HPF_CUTOFF = {0x09, 0x03, "HPF"};
-Param BEND_RANGE = {0x23, 0x0B, "Bend Range"};
-
-Param ENV_L1 = {0x1B, 0x7F, "ENV L1"};
-Param ENV_L2 = {0x1D, 0x7F, "ENV L2"};
-Param ENV_L3 = {0x1F, 0x7F, "ENV L3"};
 
 int currentPatch[PARAM_AMT];  // Holds the values for the current patch
 
 // This array handles which params are on which fader
 Param junoParams[2][POTS_NUM] = {{ LFO_RATE, LFO_DELAY_TIME, DCO_LFO, DCO_PWM_DEPTH, DCO_SUB_LVL, VCF_FREQ, VCF_RES, VCF_ENV, VCF_LFO, VCF_KYBD, VCA_LVL, ENV_T1, ENV_T2, ENV_T3, ENV_T4, CHORUS_RATE },  // Juno 106 Main Layout
-                                  { LFO_RATE, VCF_LFO, DCO_LFO, DCO_PWM_DEPTH, DCO_SUB_LVL, VCF_FREQ, VCF_RES, VCF_ENV, VCF_LFO, VCF_KYBD, VCA_LVL, ENV_T1, ENV_T2, ENV_T3, ENV_T4 }}; // Placeholder
+                                  { DCO_WAVE_PULSE, DCO_WAVE_SAW, DCO_WAVE_SUB, DCO_RANGE, HPF_CUTOFF, DCO_NOISE, DCO_ENV_MODE, VCF_ENV_MODE, VCA_ENV_MODE, VCF_LFO, VCA_LVL, ENV_T1, ENV_T2, ENV_T3, ENV_T4, CHORUS_RATE }}; // Placeholder
 
-const int faderValue[POTS_NUM] = {A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15}; //Analog in Array
+const int faderValue[POTS_NUM] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}; //Analog in Array
 
 
 typedef struct patch {
@@ -218,16 +179,16 @@ void UpdateParameters() {
 
 // Sets the default parameters of Juno 106 (sets pulse and saw wave on by default, I don't have buttons on the interface yet)
 void SetDefaultParams() {
-  SendSysExJuno(DCO_ENV_MODE.id, 0);
-  SendSysExJuno(VCF_ENV_MODE.id, 2);
-  SendSysExJuno(VCA_ENV_MODE.id, 0);
-
-  SendSysExJuno(DCO_WAVE_PULSE.id, 3);
-  SendSysExJuno(DCO_WAVE_SAW.id, 1);
-  SendSysExJuno(DCO_WAVE_SUB.id, 0); //maybe #5?
-  SendSysExJuno(DCO_RANGE.id, 2); // 16'?
-  SendSysExJuno(HPF_CUTOFF.id, 0);
-  SendSysExJuno(BEND_RANGE.id, 2);
+//  SendSysExJuno(DCO_ENV_MODE.id, 0);
+//  SendSysExJuno(VCF_ENV_MODE.id, 2);
+//  SendSysExJuno(VCA_ENV_MODE.id, 0);
+//
+//  SendSysExJuno(DCO_WAVE_PULSE.id, 3);
+//  SendSysExJuno(DCO_WAVE_SAW.id, 1);
+//  SendSysExJuno(DCO_WAVE_SUB.id, 0); //maybe #5?
+//  SendSysExJuno(DCO_RANGE.id, 2); // 16'?
+//  SendSysExJuno(HPF_CUTOFF.id, 0);
+//  SendSysExJuno(BEND_RANGE.id, 2);
 
   SendSysExJuno(ENV_L1.id, 127);
   SendSysExJuno(ENV_L2.id, 64);
