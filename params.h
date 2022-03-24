@@ -39,3 +39,6 @@ Param BEND_RANGE = {0x23, 0x0B, "Bend Range"};
 Param ENV_L1 = {0x1B, 0x7F, "ENV L1"};
 Param ENV_L2 = {0x1D, 0x7F, "ENV L2"};
 Param ENV_L3 = {0x1F, 0x7F, "ENV L3"};
+
+// Page selector, is not actually a synth midi parameter
+Param PAGE_SEL = {-1, 0x01, "Page Sel"};

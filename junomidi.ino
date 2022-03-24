@@ -24,11 +24,11 @@ int currentPage = 0;
 int oldVals[POTS_NUM] = {0};
 int currentFader = -1;
 int faderVal = -1; // Will never be -1 once currentFader is greater than -1
-int tolerance = 5;
+int tolerance = 6;
 
 // Counters
 unsigned long idleRefresh, lastRefresh, defaultRefresh, eepromRefresh = 0;
-const unsigned long REFRESH_INTERVAL = 1000, DEFAULT_INTERVAL = 5000, EEPROM_INTERVAL = 20, IDLE_INTERVAL = 900; 
+const unsigned long REFRESH_INTERVAL = 500, DEFAULT_INTERVAL = 5000, EEPROM_INTERVAL = 20, IDLE_INTERVAL = 900; 
 
 String EepromTxt;
 
@@ -50,8 +50,8 @@ Scr screenState = idle;
 int currentPatch[PARAM_AMT];  // Holds the values for the current patch
 
 // This array handles which params are on which fader
-Param junoParams[2][POTS_NUM] = {{ LFO_RATE, LFO_DELAY_TIME, DCO_LFO, DCO_PWM_DEPTH, DCO_SUB_LVL, VCF_FREQ, VCF_RES, VCF_ENV, VCF_LFO, VCF_KYBD, VCA_LVL, ENV_T1, ENV_T2, ENV_T3, ENV_T4, CHORUS_RATE },  // Juno 106 Main Layout
-                                  { DCO_WAVE_PULSE, DCO_WAVE_SAW, DCO_WAVE_SUB, DCO_RANGE, HPF_CUTOFF, DCO_NOISE, DCO_ENV_MODE, VCF_ENV_MODE, VCA_ENV_MODE, VCF_LFO, VCA_LVL, ENV_T1, ENV_T2, ENV_T3, ENV_T4, CHORUS_RATE }}; // Placeholder
+Param junoParams[PAGES][POTS_NUM] = {{ LFO_RATE, LFO_DELAY_TIME, DCO_LFO, DCO_PWM_DEPTH, DCO_SUB_LVL, VCF_FREQ, VCF_RES, VCF_ENV, VCF_LFO, PAGE_SEL /*VCF_KYBD*/, VCA_LVL, ENV_T1, ENV_T2, ENV_T3, ENV_T4, CHORUS_RATE },  // Juno 106 Main Layout
+                                  { DCO_WAVE_PULSE, DCO_WAVE_SAW, DCO_WAVE_SUB, DCO_RANGE, VCF_KYBD /*HPF_CUTOFF*/, DCO_NOISE, DCO_ENV_MODE, VCF_ENV_MODE, VCA_ENV_MODE, PAGE_SEL, VCF_LFO, ENV_T1, ENV_T2, ENV_T3, ENV_T4, CHORUS_RATE }}; // Placeholder
 
 const int faderValue[POTS_NUM] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}; //Analog in Array
 
@@ -146,6 +146,7 @@ void CheckFaderUpdate() {
 }
 
 
+
 // When the faders are in use, update the Juno parameters.
 void UpdateParameters() {
 
@@ -168,6 +169,11 @@ void UpdateParameters() {
     // Links the Envelope Sustain time to the envelope sustain level (as the Juno 106 does I think?)
     if (curParam.id == ENV_T3.id) {
       SendSysExJuno(ENV_L3.id, value);
+    }
+
+    if (curParam.id == PAGE_SEL.id) {
+      currentPage = value;
+      return;
     }
     
     SendSysExJuno(curParam.id, value);
